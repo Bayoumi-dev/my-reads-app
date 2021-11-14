@@ -1,11 +1,11 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { ThreeDotsIcon } from "../icons";
 
-class Bookshelfchanger extends Component {
-  state = {
-    bookshelfchanger: false,
-    options: [
+const Bookshelfchanger = (props) => {
+  const [bookshelfchanger, setBookshelfchanger] = useState(false),
+    { shelf } = props,
+    options = [
       {
         option: "Currently Reading",
         dataValue: "currentlyReading",
@@ -22,71 +22,53 @@ class Bookshelfchanger extends Component {
         option: "None",
         dataValue: "none",
       },
-    ],
-  };
+    ];
 
   // Handling outside clicks
-  componentDidUpdate() {
-    // setTimeout method to skip the opening and closing Book shelf changer at the same time
-    setTimeout(() => {
-      this.state.bookshelfchanger
-        ? window.addEventListener("click", this.closeBookshelfchanger)
-        : window.removeEventListener("click", this.closeBookshelfchanger);
-    }, 0);
-  }
+  useEffect(() => {
+    bookshelfchanger && window.addEventListener("click", closeBookshelfchanger);
+    // Cleanup function to clean event listener from window
+    return () => window.removeEventListener("click", closeBookshelfchanger);
+  }, [bookshelfchanger]);
 
   // Open Book shelf changer
-  openBookshelfchanger = (e) => {
-    this.setState((currState) => ({
-      ...currState,
-      bookshelfchanger: !this.state.bookshelfchanger && true,
-    }));
-  };
+  const openBookshelfchanger = () => setBookshelfchanger(true),
 
-  // close Book shelf changer
-  closeBookshelfchanger = () => {
-    this.setState((currState) => ({
-      ...currState,
-      bookshelfchanger: false,
-    }));
-  };
-
-  // Put the book in the selected shelf
-  changeBookshelf = (e) => {
-    if (e.target.dataset.value && e.target.dataset.value !== this.props.shelf) {
-      this.props.updateBookShelf(this.props.book, e.target.dataset.value);
-      this.props.MoveTo();
-    }
-  };
-
-  render() {
-    const { shelf } = this.props;
-    return (
-      <div className="options ">
-        <button onClick={this.openBookshelfchanger}>
-          <ThreeDotsIcon />
-        </button>
-        {this.state.bookshelfchanger && (
-          <div className="move-to">
-            <span>Move to...</span>
-            <ul>
-              {this.state.options.map((option) => (
-                <li
-                  key={option.dataValue}
-                  className={shelf === option.dataValue ? "selected" : ""}
-                  data-value={option.dataValue}
-                  onClick={(e) => this.changeBookshelf(e)}
-                >
-                  {option.option}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-    );
-  }
-}
+    // close Book shelf changer
+    closeBookshelfchanger = () => setBookshelfchanger(false),
+    
+    // Put the book in the selected shelf
+    changeBookshelf = (e) => {
+      if (e.target.dataset.value && e.target.dataset.value !== props.shelf) {
+        props.updateBookShelf(props.book, e.target.dataset.value);
+        props.MoveTo();
+      }
+    };
+  return (
+    <div className="options ">
+      <button onClick={openBookshelfchanger}>
+        <ThreeDotsIcon />
+      </button>
+      {bookshelfchanger && (
+        <div className="move-to">
+          <span>Move to...</span>
+          <ul>
+            {options.map((option) => (
+              <li
+                key={option.dataValue}
+                className={shelf === option.dataValue ? "selected" : ""}
+                data-value={option.dataValue}
+                onClick={(e) => changeBookshelf(e)}
+              >
+                {option.option}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 Bookshelfchanger.propTypes = {
   shelf: PropTypes.string,
